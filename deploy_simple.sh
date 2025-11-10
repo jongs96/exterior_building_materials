@@ -16,8 +16,9 @@ sudo apt-get upgrade -y
 echo "📦 필수 패키지 설치..."
 sudo apt-get install -y python3 python3-venv python3-pip nginx git
 
-# 3. 프로젝트 디렉토리로 이동
-cd /home/ubuntu/building-material-classifier
+# 3. 현재 디렉토리 확인 (스크립트가 있는 위치)
+PROJECT_DIR=$(pwd)
+echo "📁 프로젝트 디렉토리: $PROJECT_DIR"
 
 # 4. Python 가상환경 생성
 echo "🐍 Python 가상환경 생성..."
@@ -42,18 +43,20 @@ sudo chown -R ubuntu:www-data logs
 sudo chown -R ubuntu:www-data uploads
 sudo chmod -R 775 logs uploads
 
-# 8. Nginx 설정
+# 8. Nginx 설정 (프로젝트 경로 자동 설정)
 echo "🌐 Nginx 설정..."
-sudo cp nginx.conf /etc/nginx/sites-available/building-material-classifier
+# nginx.conf에서 경로를 현재 프로젝트 경로로 변경
+sed "s|/home/ubuntu/building-material-classifier|$PROJECT_DIR|g" nginx.conf | sudo tee /etc/nginx/sites-available/building-material-classifier > /dev/null
 sudo ln -sf /etc/nginx/sites-available/building-material-classifier /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl restart nginx
 sudo systemctl enable nginx
 
-# 9. systemd 서비스 설정
+# 9. systemd 서비스 설정 (프로젝트 경로 자동 설정)
 echo "⚙️ systemd 서비스 설정..."
-sudo cp building-material-classifier.service /etc/systemd/system/
+# service 파일에서 경로를 현재 프로젝트 경로로 변경
+sed "s|/home/ubuntu/building-material-classifier|$PROJECT_DIR|g" building-material-classifier.service | sudo tee /etc/systemd/system/building-material-classifier.service > /dev/null
 sudo systemctl daemon-reload
 sudo systemctl enable building-material-classifier
 sudo systemctl start building-material-classifier

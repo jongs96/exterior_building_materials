@@ -14,7 +14,7 @@ sudo apt-get upgrade -y
 
 # 2. 필수 패키지 설치 (Python 3.10은 기본 포함)
 echo "📦 필수 패키지 설치..."
-sudo apt-get install -y python3 python3-venv python3-pip nginx git
+sudo apt-get install -y python3 python3-venv python3-pip nginx git libmagic1
 
 # 3. 현재 디렉토리 확인 (스크립트가 있는 위치)
 PROJECT_DIR=$(pwd)

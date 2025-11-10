@@ -1,10 +1,10 @@
 #!/bin/bash
-# AWS EC2 배포 스크립트
+# AWS EC2 배포 스크립트 (Python 3.10 사용 - 더 간단)
 # Ubuntu 22.04 기준
 
 set -e  # 에러 발생 시 스크립트 중단
 
-echo "🚀 Building Material Classifier 배포 시작"
+echo "🚀 Building Material Classifier 배포 시작 (Python 3.10)"
 echo "=========================================="
 
 # 1. 시스템 업데이트
@@ -12,25 +12,16 @@ echo "📦 시스템 패키지 업데이트..."
 sudo apt-get update
 sudo apt-get upgrade -y
 
-# 2. 필수 패키지 설치
+# 2. 필수 패키지 설치 (Python 3.10은 기본 포함)
 echo "📦 필수 패키지 설치..."
-sudo apt-get install -y software-properties-common
-
-# Python 3.11 PPA 추가
-echo "📦 Python 3.11 저장소 추가..."
-sudo add-apt-repository ppa:deadsnakes/ppa -y
-sudo apt-get update
-
-# Python 3.11 및 필수 패키지 설치
-echo "📦 Python 3.11 및 필수 패키지 설치..."
-sudo apt-get install -y python3.11 python3.11-venv python3.11-dev python3-pip nginx git
+sudo apt-get install -y python3 python3-venv python3-pip nginx git
 
 # 3. 프로젝트 디렉토리로 이동
 cd /home/ubuntu/building-material-classifier
 
 # 4. Python 가상환경 생성
 echo "🐍 Python 가상환경 생성..."
-python3.11 -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 
 # 5. Python 패키지 설치

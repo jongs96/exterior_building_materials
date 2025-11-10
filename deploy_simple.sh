@@ -1,10 +1,10 @@
 #!/bin/bash
-# AWS EC2 배포 스크립트 (Python 3.10 사용 - 더 간단)
-# Ubuntu 22.04 기준
+# AWS EC2 배포 스크립트 (Python 3.10 사용)
+# Ubuntu 22.04 LTS 기준
 
 set -e  # 에러 발생 시 스크립트 중단
 
-echo "🚀 Building Material Classifier 배포 시작 (Python 3.10)"
+echo "🚀 Building Material Classifier 배포 시작"
 echo "=========================================="
 
 # 1. 시스템 업데이트

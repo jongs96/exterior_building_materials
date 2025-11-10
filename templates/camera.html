@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center">
+                <h1 class="display-4 fw-bold text-primary">실시간 카메라 분류</h1>
+                <p class="lead text-muted">카메라를 사용한 실시간 외장재 분류 (개발 예정)</p>
+                <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>메인 페이지로 돌아가기
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

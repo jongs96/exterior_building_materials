@@ -1,0 +1,24 @@
+# systemd 서비스 파일
+# /etc/systemd/system/building-material-classifier.service 에 복사
+
+[Unit]
+Description=Building Material Classifier Flask App
+After=network.target
+
+[Service]
+Type=notify
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/building-material-classifier
+Environment="PATH=/home/ubuntu/building-material-classifier/venv/bin"
+Environment="FLASK_ENV=production"
+ExecStart=/home/ubuntu/building-material-classifier/venv/bin/gunicorn -c gunicorn_config.py "app:create_app()"
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

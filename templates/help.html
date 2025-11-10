@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary">도움말</h1>
+                <p class="lead text-muted">서비스 사용법 및 FAQ</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h3>사용 방법</h3>
+                    <ol>
+                        <li>메인 페이지에서 건축 외장재 이미지를 업로드하세요</li>
+                        <li>지원 형식: JPG, PNG, WEBP (최대 10MB)</li>
+                        <li>AI가 자동으로 외장재 종류를 분류합니다</li>
+                        <li>결과와 함께 외장재 정보를 확인하세요</li>
+                    </ol>
+                    
+                    <h3 class="mt-4">FAQ</h3>
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    어떤 이미지를 업로드해야 하나요?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    건축물의 외벽이 명확히 보이는 이미지를 업로드하세요. 
+                                    가능한 한 외장재가 화면의 대부분을 차지하는 이미지가 좋습니다.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

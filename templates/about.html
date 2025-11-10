@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary">서비스 소개</h1>
+                <p class="lead text-muted">AI 기반 건축 외장재 자동 분류 서비스</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h3>지원하는 외장재 종류</h3>
+                    {% for class_name, description in class_descriptions.items() %}
+                    <div class="mb-4">
+                        <h5>{{ description.name }}</h5>
+                        <p>{{ description.description }}</p>
+                        <ul>
+                            {% for char in description.characteristics %}
+                            <li>{{ char }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

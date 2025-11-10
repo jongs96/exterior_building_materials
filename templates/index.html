@@ -1,0 +1,486 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    .upload-area {
+        border: 3px dashed #007bff;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .upload-area:hover {
+        border-color: #0056b3;
+        background-color: #e3f2fd;
+    }
+    
+    .upload-area.dragover {
+        border-color: #28a745;
+        background-color: #d4edda;
+    }
+    
+    .preview-container {
+        max-width: 400px;
+        margin: 20px auto;
+    }
+    
+    .preview-image {
+        max-width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .result-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 20px;
+    }
+    
+    /* 카메라 버튼 강제 표시 */
+    #cameraBtn {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- 헤더 -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary">
+                    🏢 건축 외장재 분류기
+                </h1>
+                <p class="lead text-muted">
+                    AI 기술로 건축 외장 마감재를 자동으로 분류합니다
+                </p>
+            </div>
+
+            <!-- 업로드 영역 -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <div class="upload-area" id="uploadArea">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📤</div>
+                        <h4>이미지를 업로드하세요</h4>
+                        <p class="text-muted mb-3">
+                            파일을 드래그하거나 아래 버튼을 클릭하세요
+                        </p>
+                        <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 0 auto;">
+                            <button type="button" class="btn btn-primary btn-lg" id="fileSelectBtn">
+                                📁 파일 선택
+                            </button>
+                            <button type="button" class="btn btn-success btn-lg" id="cameraBtn">
+                                📷 카메라 촬영
+                            </button>
+                        </div>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                지원 형식: JPG, PNG, WEBP | 최대 크기: 10MB
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- 이미지 미리보기 -->
+                    <div id="previewContainer" class="preview-container" style="display: none;">
+                        <img id="previewImage" class="preview-image" alt="미리보기">
+                        <div class="text-center mt-3">
+                            <button type="button" class="btn btn-success btn-lg" id="analyzeBtn">
+                                🔍 분석 시작
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" id="cancelBtn">
+                                ❌ 취소
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 로딩 -->
+                    <div id="loadingContainer" class="text-center py-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">분석 중...</span>
+                        </div>
+                        <div class="mt-3">
+                            <h5>AI가 이미지를 분석하고 있습니다...</h5>
+                            <p class="text-muted">잠시만 기다려주세요</p>
+                        </div>
+                    </div>
+
+                    <!-- 결과 표시 -->
+                    <div id="resultContainer" style="display: none;">
+                        <div class="result-card">
+                            <div class="text-center">
+                                <h3 id="materialName"></h3>
+                                <div class="mt-3">
+                                    <h6>신뢰도: <span id="confidenceText"></span></h6>
+                                    <h6>처리 시간: <span id="processingTime"></span></h6>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <h5 class="card-title">외장재 정보</h5>
+                                <p id="materialDescription" class="card-text"></p>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="button" class="btn btn-primary btn-lg" id="resetBtn">
+                                ➕ 다른 이미지 분석
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 카메라 모달 -->
+<div class="modal fade" id="cameraModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📷 카메라로 촬영하기</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <div id="cameraContainer" class="mb-3">
+                        <video id="cameraVideo" width="100%" height="300" autoplay muted style="border-radius: 10px; background: #000;"></video>
+                    </div>
+                    
+                    <div id="capturedContainer" class="mb-3" style="display: none;">
+                        <canvas id="capturedCanvas" style="border-radius: 10px; max-width: 100%;"></canvas>
+                    </div>
+                    
+                    <div id="cameraStatus" class="alert alert-info">
+                        카메라 접근 권한을 허용해주세요
+                    </div>
+                    
+                    <div id="cameraControls" class="mt-3" style="display: none;">
+                        <button type="button" class="btn btn-primary btn-lg" id="captureBtn">
+                            📸 사진 촬영
+                        </button>
+                    </div>
+                    
+                    <div id="captureControls" class="mt-3" style="display: none;">
+                        <button type="button" class="btn btn-success btn-lg me-2" id="analyzeCapBtn">
+                            🔍 분석하기
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary me-2" id="retakeBtn">
+                            🔄 다시 촬영
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" id="closeCamBtn">
+                            ❌ 취소
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedFile = null;
+let cameraStream = null;
+let capturedImageData = null;
+
+// DOM 요소
+const uploadArea = document.getElementById('uploadArea');
+const imageInput = document.getElementById('imageInput');
+const fileSelectBtn = document.getElementById('fileSelectBtn');
+const cameraBtn = document.getElementById('cameraBtn');
+const previewContainer = document.getElementById('previewContainer');
+const previewImage = document.getElementById('previewImage');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const loadingContainer = document.getElementById('loadingContainer');
+const resultContainer = document.getElementById('resultContainer');
+const resetBtn = document.getElementById('resetBtn');
+
+// 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('페이지 로드 완료');
+    
+    // 파일 선택 버튼
+    fileSelectBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('파일 선택 버튼 클릭');
+        imageInput.value = '';
+        imageInput.click();
+    });
+    
+    // 파일 입력 변경
+    imageInput.addEventListener('change', function(e) {
+        console.log('파일 선택됨:', e.target.files);
+        const file = e.target.files[0];
+        if (file) {
+            processFile(file);
+        }
+    });
+    
+    // 카메라 버튼
+    cameraBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('카메라 버튼 클릭');
+        openCamera();
+    });
+    
+    // 드래그 앤 드롭
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            processFile(files[0]);
+        }
+    });
+    
+    // 분석 버튼
+    analyzeBtn.addEventListener('click', analyzeImage);
+    
+    // 취소 버튼
+    cancelBtn.addEventListener('click', resetUpload);
+    
+    // 리셋 버튼
+    resetBtn.addEventListener('click', resetUpload);
+    
+    // 카메라 모달 버튼들
+    document.getElementById('captureBtn').addEventListener('click', capturePhoto);
+    document.getElementById('analyzeCapBtn').addEventListener('click', analyzeCapturedImage);
+    document.getElementById('retakeBtn').addEventListener('click', retakePhoto);
+    document.getElementById('closeCamBtn').addEventListener('click', closeCamera);
+});
+
+function processFile(file) {
+    console.log('파일 처리 시작:', file.name);
+    
+    if (!file.type.startsWith('image/')) {
+        alert('이미지 파일만 업로드할 수 있습니다.');
+        return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+        alert('파일 크기는 10MB 이하여야 합니다.');
+        return;
+    }
+    
+    selectedFile = file;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        previewImage.src = e.target.result;
+        showPreview();
+    };
+    reader.readAsDataURL(file);
+}
+
+function showPreview() {
+    uploadArea.style.display = 'none';
+    previewContainer.style.display = 'block';
+    resultContainer.style.display = 'none';
+}
+
+function analyzeImage() {
+    if (!selectedFile) {
+        alert('먼저 이미지를 선택해주세요.');
+        return;
+    }
+    
+    console.log('분석 시작');
+    previewContainer.style.display = 'none';
+    loadingContainer.style.display = 'block';
+    resultContainer.style.display = 'none';
+    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    
+    fetch('/api/predict', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('분석 결과:', data);
+        loadingContainer.style.display = 'none';
+        
+        if (data.success) {
+            displayResult(data);
+        } else {
+            alert('분석 중 오류가 발생했습니다: ' + (data.error || '알 수 없는 오류'));
+            showPreview();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        loadingContainer.style.display = 'none';
+        alert('서버 연결 오류가 발생했습니다.');
+        showPreview();
+    });
+}
+
+function displayResult(data) {
+    const prediction = data.prediction;
+    const description = data.description;
+    
+    document.getElementById('materialName').textContent = description.name || prediction.class;
+    document.getElementById('confidenceText').textContent = Math.round(prediction.confidence * 100) + '%';
+    document.getElementById('processingTime').textContent = data.processing_time + '초';
+    document.getElementById('materialDescription').textContent = description.description || '설명이 없습니다.';
+    
+    resultContainer.style.display = 'block';
+}
+
+function resetUpload() {
+    selectedFile = null;
+    imageInput.value = '';
+    
+    uploadArea.style.display = 'block';
+    previewContainer.style.display = 'none';
+    loadingContainer.style.display = 'none';
+    resultContainer.style.display = 'none';
+}
+
+// 카메라 함수들
+function openCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('이 브라우저에서는 카메라를 지원하지 않습니다.');
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('cameraModal'));
+    modal.show();
+    
+    document.getElementById('cameraModal').addEventListener('shown.bs.modal', function() {
+        startCamera();
+    }, { once: true });
+}
+
+async function startCamera() {
+    const video = document.getElementById('cameraVideo');
+    const status = document.getElementById('cameraStatus');
+    const controls = document.getElementById('cameraControls');
+    
+    try {
+        status.textContent = '카메라를 시작하는 중...';
+        
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        
+        video.srcObject = cameraStream;
+        status.textContent = '카메라가 준비되었습니다';
+        status.className = 'alert alert-success';
+        controls.style.display = 'block';
+        
+    } catch (error) {
+        console.error('카메라 오류:', error);
+        status.textContent = '카메라에 접근할 수 없습니다. 권한을 확인해주세요.';
+        status.className = 'alert alert-danger';
+    }
+}
+
+function capturePhoto() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('capturedCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+    
+    capturedImageData = canvas.toDataURL('image/jpeg', 0.8);
+    
+    document.getElementById('cameraContainer').style.display = 'none';
+    document.getElementById('capturedContainer').style.display = 'block';
+    document.getElementById('cameraControls').style.display = 'none';
+    document.getElementById('captureControls').style.display = 'block';
+    document.getElementById('cameraStatus').textContent = '사진이 촬영되었습니다';
+}
+
+function retakePhoto() {
+    document.getElementById('cameraContainer').style.display = 'block';
+    document.getElementById('capturedContainer').style.display = 'none';
+    document.getElementById('cameraControls').style.display = 'block';
+    document.getElementById('captureControls').style.display = 'none';
+    capturedImageData = null;
+}
+
+function closeCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('cameraModal'));
+    modal.hide();
+    
+    document.getElementById('cameraContainer').style.display = 'block';
+    document.getElementById('capturedContainer').style.display = 'none';
+    document.getElementById('cameraControls').style.display = 'none';
+    document.getElementById('captureControls').style.display = 'none';
+    capturedImageData = null;
+}
+
+async function analyzeCapturedImage() {
+    if (!capturedImageData) {
+        alert('촬영된 이미지가 없습니다.');
+        return;
+    }
+    
+    closeCamera();
+    
+    uploadArea.style.display = 'none';
+    previewContainer.style.display = 'none';
+    loadingContainer.style.display = 'block';
+    resultContainer.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/predict-camera', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: capturedImageData })
+        });
+        
+        const data = await response.json();
+        loadingContainer.style.display = 'none';
+        
+        if (data.success) {
+            displayResult(data);
+        } else {
+            alert('분석 중 오류가 발생했습니다.');
+            resetUpload();
+        }
+        
+    } catch (error) {
+        console.error('카메라 분석 오류:', error);
+        loadingContainer.style.display = 'none';
+        alert('서버 연결 오류가 발생했습니다.');
+        resetUpload();
+    }
+}
+</script>
+{% endblock %}

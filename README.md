@@ -1,6 +1,6 @@
 # 딥러닝 기반 건축 자재 분류 서비스 (Building Material Classifier)
 
-![Demo Screenshot](static/images/demo_screenshot.png)
+![Demo Screenshot](static/images/demo.png)
 
 ## 프로젝트 소개
 **딥러닝 기반 건축 자재 분류 서비스**는 사용자가 업로드한 이미지를 분석하여 벽돌, 콘크리트, 유리 등 건축 자재의 종류를 자동으로 식별하고 알려주는 AI 솔루션입니다. 건설 현장 및 관련 산업에서의 업무 효율성을 증대하고 자재 분류 자동화에 기여하기 위해 개발되었습니다.
@@ -50,7 +50,7 @@ graph LR
     Client[Client Browser] -->|HTTP| Nginx[Nginx Web Server]
     Nginx -->|Reverse Proxy| Gunicorn[Gunicorn WSGI]
     Gunicorn -->|Manage| Flask[Flask App]
-    Flask -->|Load| Model[PyTorch Model (.pth)]
+    Flask -->|Load| Model["PyTorch Model (.pth)"]
 ```
 
 ## 프로젝트 구조 (Project Structure)

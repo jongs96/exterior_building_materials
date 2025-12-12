@@ -57,18 +57,18 @@ graph LR
 
 ```bash
 picture_machine
- ┣ 📂 app
- ┃ ┣ 📂 api               # REST API 블루프린트
- ┃ ┣ 📂 main              # 메인 웹 페이지 블루프린트
- ┃ ┣ 📂 services          # 비즈니스 로직 (ImageService, ModelService)
- ┃ ┣ 📂 middleware        # 보안 미들웨어 등
- ┃ ┗ 📜 __init__.py       # 앱 팩토리
- ┣ 📂 models              # 학습된 모델 디렉토리
- ┣ 📂 static              # 정적 파일 (CSS, JS, Images)
- ┣ 📂 templates           # HTML 템플릿
- ┣ 📜 building_material_classifier_pytorch.pth  # 학습 모델 파일
- ┣ 📜 requirements.txt    # 의존성 목록
- ┗ 📜 run.py              # 실행 스크립트
+ ┣ app
+ ┃ ┣ api               # REST API 블루프린트
+ ┃ ┣ main              # 메인 웹 페이지 블루프린트
+ ┃ ┣ services          # 비즈니스 로직 (ImageService, ModelService)
+ ┃ ┣ middleware        # 보안 미들웨어 등
+ ┃ ┗ __init__.py       # 앱 팩토리
+ ┣ models              # 학습된 모델 디렉토리
+ ┣ static              # 정적 파일 (CSS, JS, Images)
+ ┣ templates           # HTML 템플릿
+ ┣ building_material_classifier_pytorch.pth  # 학습 모델 파일
+ ┣ requirements.txt    # 의존성 목록
+ ┗ run.py              # 실행 스크립트
 ```
 
 ## 설치 및 실행 방법 (Getting Started)

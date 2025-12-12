@@ -451,6 +451,9 @@ async function analyzeCapturedImage() {
         return;
     }
     
+    // 데이터를 먼저 로컬 변수에 저장 (closeCamera() 호출 시 전역 변수가 초기화되므로)
+    const imageDataToSend = capturedImageData;
+    
     closeCamera();
     
     uploadArea.style.display = 'none';
@@ -462,7 +465,7 @@ async function analyzeCapturedImage() {
         const response = await fetch('/api/predict-camera', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: capturedImageData })
+            body: JSON.stringify({ image: imageDataToSend })
         });
         
         const data = await response.json();

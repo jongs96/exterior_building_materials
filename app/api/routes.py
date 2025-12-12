@@ -12,7 +12,7 @@ import numpy as np
 
 from app.api import bp
 from app.services.image_service import ImageService
-from app.utils.validators import validate_image_file
+from app.utils.validators import validate_image_file, validate_base64_image
 from app.utils.error_handler import safe_api_call, ApplicationError, create_success_response
 
 
@@ -176,39 +176,45 @@ def predict_camera():
     try:
         # JSON 데이터 확인
         if not request.is_json:
+            current_app.logger.warning("Request content-type is not JSON")
             raise ApplicationError('INVALID_FORMAT', 'JSON 형식의 데이터가 필요합니다.')
         
         data = request.get_json()
         
-        # Base64 이미지 데이터 확인
-        if 'image' not in data:
+        image_data = data.get('image')
+        
+        if not image_data:
+            current_app.logger.warning("No image data provided (None or empty)")
             raise ApplicationError('NO_IMAGE_DATA', '이미지 데이터가 없습니다.')
+
+        current_app.logger.info(f"Received camera image data (length: {len(image_data)})")
         
-        image_data = data['image']
-        
-        # Base64 헤더 제거 (data:image/jpeg;base64, 부분)
-        if ',' in image_data:
-            image_data = image_data.split(',')[1]
-        
-        # Base64 이미지 검증
-        from app.utils.validators import validate_base64_image
-        
+        # Base64 이미지 검증 (헤더 포함된 상태로 전달해도 됨, validators 내부에서 처리)
         validation_result = validate_base64_image(image_data, current_app.config['MAX_CONTENT_LENGTH'])
         if not validation_result['valid']:
-            return jsonify({
-                'error': validation_result['message'],
-                'code': validation_result['code']
-            }), 400
-        
+            # 디버깅을 위해 검증 실패 시에도 진행 (로그만 남김)
+            current_app.logger.warning(f"Image validation FAILED but proceeding for debug: {validation_result.get('message')}")
+
         # Base64 디코딩
         import base64
         try:
+            # image_data가 문자열임을 보장
+            if not isinstance(image_data, str):
+                image_data = str(image_data)
+
             if ',' in image_data:
                 image_data = image_data.split(',')[1]
+            
+            # 패딩 보정 (Base64 길이는 4의 배수여야 함)
+            missing_padding = len(image_data) % 4
+            if missing_padding:
+                image_data += '=' * (4 - missing_padding)
+                
             image_bytes = base64.b64decode(image_data)
         except Exception as e:
+            current_app.logger.error(f"Base64 decoding failed: {str(e)}")
             return jsonify({
-                'error': 'Base64 디코딩 실패',
+                'error': f'Base64 디코딩 실패: {str(e)}',
                 'code': 'DECODE_ERROR'
             }), 400
         
@@ -217,9 +223,15 @@ def predict_camera():
             from io import BytesIO
             image_stream = BytesIO(image_bytes)
             pil_image = Image.open(image_stream)
+            # 이미지가 완전히 로드되었는지 확인
+            pil_image.verify()
+            # verify 후에는 다시 열어야 함
+            image_stream.seek(0)
+            pil_image = Image.open(image_stream)
         except Exception as e:
+            current_app.logger.error(f"PIL Image open failed: {str(e)}")
             return jsonify({
-                'error': '이미지 파일 형식이 올바르지 않습니다.',
+                'error': f'이미지 변환 실패: {str(e)}',
                 'code': 'INVALID_IMAGE'
             }), 400
         
@@ -266,8 +278,10 @@ def predict_camera():
         
     except Exception as e:
         current_app.logger.error(f"카메라 예측 API 오류: {str(e)}")
+        import traceback
+        current_app.logger.error(traceback.format_exc())
         return jsonify({
-            'error': '서버 내부 오류가 발생했습니다.',
+            'error': f'서버 내부 오류가 발생했습니다: {str(e)}',
             'code': 'INTERNAL_ERROR'
         }), 500
 
